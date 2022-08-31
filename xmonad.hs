@@ -22,6 +22,11 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Layout.Gaps
+    ( Direction2D(D, L, R, U),
+      gaps,
+      setGaps,
+      GapMessage(DecGap, ToggleGaps, IncGap) )
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
@@ -68,6 +73,9 @@ myModMask       = mod4Mask
 -- myNumlockMask   = mod2Mask -- deprecated in xmonad-0.9.1
 ------------------------------------------------------------
 
+--vars
+rofi_launcher = spawn "rofi -show run"
+--end
 
 -- The default number of workspaces (virtual screens) and their names.
 -- By default we use numeric strings, but any string may be used as a
@@ -82,8 +90,8 @@ myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
 
 -- Border colors for unfocused and focused windows, respectively.
 --
-myNormalBorderColor  = "#dddddd"
-myFocusedBorderColor = "#ff0000"
+myNormalBorderColor  = "#3b4252"
+myFocusedBorderColor = "#b280d9"
 
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
@@ -93,11 +101,28 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch a terminal
     [ ((modm .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf)
 
-    -- launch dmenu
-    , ((modm,               xK_p     ), spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"")
+    -- launchers
+    , ((modm,               xK_p     ), rofi_launcher)
 
     -- launch gmrun
-    , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
+    --, ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
+
+    --gap
+    , ((modm .|. controlMask, xK_g), sendMessage $ ToggleGaps)               -- toggle all gaps
+    , ((modm .|. shiftMask, xK_g), sendMessage $ setGaps [(L,30), (R,30), (U,40), (D,60)]) -- reset the GapSpec
+    
+    , ((modm .|. controlMask, xK_t), sendMessage $ IncGap 10 L)              -- increment the left-hand gap
+    , ((modm .|. shiftMask, xK_t     ), sendMessage $ DecGap 10 L)           -- decrement the left-hand gap
+    
+    , ((modm .|. controlMask, xK_y), sendMessage $ IncGap 10 U)              -- increment the top gap
+    , ((modm .|. shiftMask, xK_y     ), sendMessage $ DecGap 10 U)           -- decrement the top gap
+    
+    , ((modm .|. controlMask, xK_u), sendMessage $ IncGap 10 D)              -- increment the bottom gap
+    , ((modm .|. shiftMask, xK_u     ), sendMessage $ DecGap 10 D)           -- decrement the bottom gap
+
+    , ((modm .|. controlMask, xK_i), sendMessage $ IncGap 10 R)              -- increment the right-hand gap
+    , ((modm .|. shiftMask, xK_i     ), sendMessage $ DecGap 10 R)           -- decrement the right-hand gap
+    --end
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -295,6 +320,7 @@ myLogHook = return ()
 -- hook by combining it with ewmhDesktopsStartup.
 --
 myStartupHook = return ()
+spawnOnce = "nitrogen --restore"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
